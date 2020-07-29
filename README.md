@@ -1,7 +1,7 @@
 # BlackNut statistics
 
-## To run the script:
-sudo python3 statsBlacknut.py
+## To run the script (only python3):
+python3 statsBlacknut.py
 
 ## Settings:
 key_path    /* Set key_path to the path to the service account key */   
