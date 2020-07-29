@@ -10,5 +10,7 @@ end_date    /*The date (YYYY, MM, DD) on which the analysis will begin */
 
 ## Results :
 ### Prints in the console :
+- Number of sessions   
+- Number of users   
 
 ### Plots :
