@@ -30,6 +30,6 @@ end_date    /*The date (YYYY, MM, DD) on which the analysis will begin */
 - Mean of number of users   
 - Number of new users per week since the start date   
 - Number of users already present every past week since the start date   
-- proportion des utilisateurs de la première semaine qui sont revenus depuis le début   
+- Proportion of first week users who came back since the beginning   
 - Proportion of users who only came once
 - Mean of number of day played by users

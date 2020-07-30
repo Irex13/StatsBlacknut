@@ -388,5 +388,4 @@ plt.show()
 print("Mean of number of day played by users since " + since_date.strftime("%Y-%m-%d") + ": ", np.mean(day_played))
 print("standart deviation: ", np.std(day_played))
 #end
-
 #final end
