@@ -29,7 +29,7 @@ client = bigquery.Client(
 
 
 ###Time variables (YYYY, MM, DD)
-since_date = datetime.date(2020, 6, 1)
+since_date = datetime.date(2019, 6, 1)
 end_date = datetime.date(2020, 7, 25)
 
 print("Results between " + since_date.strftime("%Y-%m-%d") + " and " + end_date.strftime("%Y-%m-%d") + ": ")
