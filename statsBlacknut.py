@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+### Copyright 2020 Robinson Sablons De Gelis
+
 from google.cloud import bigquery
 from google.oauth2 import service_account
 
@@ -27,17 +29,20 @@ client = bigquery.Client(
 
 
 ###Time variables (YYYY, MM, DD)
-since_date = datetime.date(2020, 7, 1)
-end_date = datetime.date(2020, 7, 28)
+since_date = datetime.date(2020, 6, 1)
+end_date = datetime.date(2020, 7, 25)
+
+print("Results between " + since_date.strftime("%Y-%m-%d") + " and " + end_date.strftime("%Y-%m-%d") + ": ")
 
 ###Query
 query = "SELECT user, created_at, status, game__global_id FROM external_share.streams WHERE status = 'ended' AND created_at >= '"+ since_date.strftime("%Y-%m-%d") + " 00:00:00.000 UTC' AND created_at <='"+ end_date.strftime("%Y-%m-%d") + " 23:59:59.000 UTC'"
 query_job = client.query(query)
 query_daily = query_job.to_dataframe()
 
+
 ###Number of sessions
 nb_sessions = len(query_daily)
-print("number of sessions since " + since_date.strftime("%Y-%m-%d") + ": ", nb_sessions)
+print("number of sessions: ", nb_sessions)
 
 ###Map (User, (Date, Game))
 map_users = {}
@@ -70,9 +75,9 @@ for i in range(0, len(query_daily)):
         map_dates_users[query_daily["created_at"][i].strftime("%Y:%m:%d")] = []
         map_dates_users[query_daily["created_at"][i].strftime("%Y:%m:%d")].append(query_daily["user"][i])
 
-###Number of unique users since the since_date
+###Number of unique users
 nb_unique_users = len(map_users)
-print("number of unique users since " + since_date.strftime("%Y-%m-%d") + ": ", nb_unique_users)
+print("number of unique users: ", nb_unique_users)
 
 ###Frequence of play by users
 tab_frequence_of_play = []
@@ -102,7 +107,7 @@ for date in sorted (map_dates_nb) :
         dates_month.append(datetime.datetime.strptime(date, "%Y:%m:%d").date())
     if (datetime.datetime.strptime(date, "%Y:%m:%d").date() - since_date).days % 7 == 0:
         dates_week.append(datetime.datetime.strptime(date, "%Y:%m:%d").date())
-print("mean of number of session since " + since_date.strftime("%Y-%m-%d") + ": ", np.mean(tab_times_session))
+print("mean of number of session: ", np.mean(tab_times_session))
 print("standart deviation: ", np.std(tab_times_session))
 
 print("nb weeks = ", len(dates_week))
@@ -135,19 +140,18 @@ tab_times_bis_week = []
 daybis = 1
 tab_week_bis_tmp = []
 
-nb = 1
-first_week = []
-second_week = []
-third_week = []
-fourth_week = []
 
-nbbis = 0 ######
+
+nb_day = 0 ######
 map_weeks = {}
 for i in range(0, len(dates_week)):
         map_weeks[i] = [] 
 map_weeks_recur = {}
 for i in range(0, len(dates_week)):
         map_weeks_recur[i] = [] 
+map_weeks_prop = {}
+for i in range(0, len(dates_week)):
+        map_weeks_prop[i] = [] 
 
 
 for date in sorted (map_dates_users) :
@@ -178,20 +182,35 @@ for date in sorted (map_dates_users) :
                 tab_week_bis_tmp.append(user)
         daybis += 1
     
-
+    #user who come back
     for user in map_dates_users[date]:
         found = False
         nbfound = 0
-        for i in range(0, (nbbis//7) +1):
+        found_only_in_init = False
+        for i in range(0, (nb_day//7) +1):
             if user in map_weeks[i]: 
                 found = True
             if user in map_weeks_recur[i]:
                 nbfound += 1
+            if i == 0:
+                if user in map_weeks_prop[i]:
+                    found_only_in_init = True
+            if i != 0:
+                if user in map_weeks_prop[i]:
+                    found_only_in_init = False
+
         if not found:
-            map_weeks[nbbis//7].append(user)
-        if nbfound == (nbbis//7):
-            map_weeks_recur[nbbis//7].append(user)
-    nbbis += 1
+            map_weeks[nb_day//7].append(user)
+        """
+        if nbfound >= (nb_day//7)//2 and nbfound <= (nb_day//7):
+            if user not in map_weeks_recur[nb_day//7]:
+        """
+        if nbfound == (nb_day//7):
+            map_weeks_recur[nb_day//7].append(user)
+        if found_only_in_init or nb_day < 7:
+            if user not in map_weeks_prop[nb_day//7]:
+                map_weeks_prop[nb_day//7].append(user)
+    nb_day += 1
     
 
     #daily
@@ -202,15 +221,30 @@ for date in sorted (map_dates_users) :
         elif (date.startswith(str(since_date.year))):
             tab_times_start.append(len(map_dates_users[date]))
 
-
+# tab of new user each weeks
 user_each_weeks = []
 for i in range(0, len(dates_week)):
     user_each_weeks.append(len(map_weeks[i]))
 
+# tab of user that came back every weeks
 user_recur_each_weeks = []
 for i in range(0, len(dates_week)):
     user_recur_each_weeks.append(len(map_weeks_recur[i]))
-#Plot if multiple years
+
+# tab with cumulative proportions of user who came back
+user_prop_each_weeks = []
+for i in range(0, len(dates_week)):
+    user_prop_each_weeks.append(0)
+    if i >= 2:
+        for j in range(1, i+1):
+            user_prop_each_weeks[i] += len(map_weeks_prop[j])
+    else:
+        user_prop_each_weeks[i] += len(map_weeks_prop[i])
+    user_prop_each_weeks[i] = round(user_prop_each_weeks[i] / len(map_weeks_prop[0]) * 100, 1)
+
+print(user_prop_each_weeks)
+
+#Plot of mean of number of user per day if multiple years
 if since_date.year != end_date.year:
     print("mean of number of unique user in " + str(since_date.year) + ": ", np.mean(tab_times_start))
     print("mean of number of unique user in " + str(end_date.year) + ": ", np.mean(tab_times_end))
@@ -221,8 +255,8 @@ if since_date.year != end_date.year:
     ax.grid()
     plt.show()
 
-
 #Plots
+#number of users per day
 fig, ax = plt.subplots()
 ax.plot(dates, tab_times_user) 
 plt.xticks(dates_month)
@@ -238,25 +272,48 @@ print("standart deviation: ", np.std(tab_times_user))
 print("mean of number of unique user per week since " + since_date.strftime("%Y-%m-%d") + ": ", np.mean(tab_times_week))
 print("standart deviation: ", np.std(tab_times_week))
 
-fig, ax = plt.subplots()    
-ax.bar(["per day","per week", "per two weeks", "full period"],[np.mean(tab_times_user), np.mean(tab_times_week), np.mean(tab_times_bis_week), len(map_users)])
-ax.set(xlabel= since_date.strftime("%Y-%m-%d") + " - " + end_date.strftime("%Y-%m-%d"), ylabel='number of user per day', title='mean of number of user')
-ax.grid()
-plt.show()
+#mean of number of unique users per day/week/two_week/period
+if(len(dates_week) >= 2):
+    fig, ax = plt.subplots()
+    bars = ax.bar(["per day","per week", "per two weeks", "full period"],[np.mean(tab_times_user), np.mean(tab_times_week), np.mean(tab_times_bis_week), len(map_users)])
+    ax.set(xlabel= since_date.strftime("%Y-%m-%d") + " - " + end_date.strftime("%Y-%m-%d"), ylabel='number of user per day', title='mean of number of unique users')
+    ax.grid()
+    for bar in bars:
+        yval = bar.get_height()
+        plt.text(bar.get_x(), yval + .005, round(yval,1))
+    plt.show()
 
-fig, ax = plt.subplots()    
-ax.bar(dates_week, user_each_weeks,6)
+#number of new users per week
+fig, ax = plt.subplots()
+bars = ax.bar(dates_week, user_each_weeks,6)
 plt.xticks(dates_week)
 ax.set(xlabel= since_date.strftime("%Y-%m-%d") + " - " + end_date.strftime("%Y-%m-%d"), ylabel='number of user', title='number of new users per week')
 plt.gcf().autofmt_xdate()
 plt.gca().xaxis.set_major_formatter(date_format)
 ax.grid()
+for bar in bars:
+    yval = bar.get_height()
+    plt.text(bar.get_x(), yval + .005, yval)
 plt.show()
 
+#number of user already present every past week
 fig, ax = plt.subplots()    
 bars = ax.bar(dates_week, user_recur_each_weeks,6)
 plt.xticks(dates_week)
 ax.set(xlabel= since_date.strftime("%Y-%m-%d") + " - " + end_date.strftime("%Y-%m-%d"), ylabel='number of user', title='number of user already present every past week')
+plt.gcf().autofmt_xdate()
+plt.gca().xaxis.set_major_formatter(date_format)
+ax.grid()
+for bar in bars:
+    yval = bar.get_height()
+    plt.text(bar.get_x(), yval + .005, yval)
+plt.show()
+
+# proportion of first week users who came back since the beginning
+fig, ax = plt.subplots()    
+bars = ax.bar(dates_week, user_prop_each_weeks,6)
+plt.xticks(dates_week)
+ax.set(xlabel= since_date.strftime("%Y-%m-%d") + " - " + end_date.strftime("%Y-%m-%d"), ylabel='number of user', title='proportion of first week users who came back since the beginning')
 plt.gcf().autofmt_xdate()
 plt.gca().xaxis.set_major_formatter(date_format)
 ax.grid()
@@ -319,11 +376,14 @@ for user in map_users:
     if len(map_users[user]) == 1:
         only_one_time += 1
 
-print(only_one_time/len(map_users))
-fig, ax = plt.subplots()    
-ax.bar(["number of unique user","number of users who only came once"],[len(map_users), only_one_time])
-ax.set(xlabel= since_date.strftime("%Y-%m-%d") + " - " + end_date.strftime("%Y-%m-%d"), ylabel='number of users', title='number of unique users')
+print("proportion of users who only came once: ", round(only_one_time/len(map_users)*100, 1) , "%")
+fig, ax = plt.subplots()
+bars = ax.bar(["number of unique user","number of users who only came once"],[len(map_users), only_one_time])
+ax.set(xlabel= since_date.strftime("%Y-%m-%d") + " - " + end_date.strftime("%Y-%m-%d"), ylabel='number of users', title='Proportion of users who only came once')
 ax.grid()
+for bar in bars:
+    yval = bar.get_height()
+    plt.text(bar.get_x(), yval + .005, yval)
 plt.show()
 print("Mean of number of day played by users since " + since_date.strftime("%Y-%m-%d") + ": ", np.mean(day_played))
 print("standart deviation: ", np.std(day_played))

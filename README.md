@@ -27,7 +27,9 @@ end_date    /*The date (YYYY, MM, DD) on which the analysis will begin */
 - Number of sessions per day   
 - Mean of number of users (only if multiple years)   
 - Number of users per day
-- Mean of number of users #a revoir   
+- Mean of number of users   
 - Number of new users per week since the start date   
 - Number of users already present every past week since the start date   
+- proportion des utilisateurs de la première semaine qui sont revenus depuis le début   
 - Proportion of users who only came once
+- Mean of number of day played by users
