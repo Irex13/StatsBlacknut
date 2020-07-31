@@ -29,17 +29,19 @@ client = bigquery.Client(
 
 
 ###Time variables (YYYY, MM, DD)
-since_date = datetime.date(2020, 5, 6)
-end_date = datetime.date(2020, 7, 28)
+since_date = datetime.date(2019, 1, 1)
+end_date = datetime.date.today()
 
 print("Results between " + since_date.strftime("%Y-%m-%d") + " and " + end_date.strftime("%Y-%m-%d") + ": ")
 
 ###Query
-query = "SELECT user, created_at, status, game__global_id FROM external_share.streams WHERE status = 'ended' AND created_at >= '"+ since_date.strftime("%Y-%m-%d") + " 00:00:00.000 UTC' AND created_at <='"+ end_date.strftime("%Y-%m-%d") + " 23:59:59.000 UTC'"
+#Without cluster Tim
+query = "SELECT streams.user, streams.created_at, streams.status, streams.game__global_id FROM external_share.streams INNER JOIN external_share.users ON streams.user = users._id WHERE (users.clusters IS NULL OR users.clusters != 'Tim') AND streams.status = 'ended' AND streams.created_at >= '"+ since_date.strftime("%Y-%m-%d") + " 00:00:00.000 UTC' AND created_at <='"+ end_date.strftime("%Y-%m-%d") + " 23:59:59.000 UTC'"
+#With cluter Tim
+#query = "SELECT streams.user, streams.created_at, streams.status, streams.game__global_id FROM external_share.streams WHERE status = 'ended' AND created_at >= '"+ since_date.strftime("%Y-%m-%d") + " 00:00:00.000 UTC' AND created_at <='"+ end_date.strftime("%Y-%m-%d") + " 23:59:59.000 UTC'"
 query_job = client.query(query)
 query_daily = query_job.to_dataframe()
-
-
+        
 ###Number of sessions
 nb_sessions = len(query_daily)
 print("number of sessions: ", nb_sessions)
