@@ -29,8 +29,8 @@ client = bigquery.Client(
 
 
 ###Time variables (YYYY, MM, DD)
-since_date = datetime.date(2019, 6, 1)
-end_date = datetime.date(2020, 7, 25)
+since_date = datetime.date(2020, 5, 6)
+end_date = datetime.date(2020, 7, 28)
 
 print("Results between " + since_date.strftime("%Y-%m-%d") + " and " + end_date.strftime("%Y-%m-%d") + ": ")
 
@@ -249,10 +249,13 @@ if since_date.year != end_date.year:
     print("mean of number of unique user in " + str(since_date.year) + ": ", np.mean(tab_times_start))
     print("mean of number of unique user in " + str(end_date.year) + ": ", np.mean(tab_times_end))
     fig, ax = plt.subplots()    
-    ax.bar([str(since_date.year),str(end_date.year)],[np.mean(tab_times_start), np.mean(tab_times_end)])
+    bars = ax.bar([str(since_date.year),str(end_date.year)],[np.mean(tab_times_start), np.mean(tab_times_end)])
     ax.set(xlabel='year', ylabel='number of user per day',
        title='mean of number of user')
     ax.grid()
+    for bar in bars:
+        yval = bar.get_height()
+        plt.text(bar.get_x(), yval + .005, round(yval, 1))
     plt.show()
 
 #Plots
