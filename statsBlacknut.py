@@ -142,7 +142,7 @@ tab_week_bis_tmp = []
 
 
 
-nb_day = 0 ######
+nb_day = 0
 map_weeks = {}
 for i in range(0, len(dates_week)):
         map_weeks[i] = [] 
@@ -241,8 +241,6 @@ for i in range(0, len(dates_week)):
     else:
         user_prop_each_weeks[i] += len(map_weeks_prop[i])
     user_prop_each_weeks[i] = round(user_prop_each_weeks[i] / len(map_weeks_prop[0]) * 100, 1)
-
-print(user_prop_each_weeks)
 
 #Plot of mean of number of user per day if multiple years
 if since_date.year != end_date.year:
