@@ -6,7 +6,7 @@ python3 statsBlacknut.py
 ## Settings:
 key_path    /* Set key_path to the path to the service account key */   
 since_date  /*The date (YYYY, MM, DD) on which the analysis will begin */   
-end_date    /*The date (YYYY, MM, DD) on which the analysis will begin, datetime.date.today() if it's today*/
+end_date    /*The date (YYYY, MM, DD) on which the analysis will end, datetime.date.today() if it's today*/
 
 ## Results :
 ### Prints in the console :
